@@ -17,8 +17,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function init() {
-  //Pth = Module.cwrap("Pt", "number", ["number", "number", "number"]);
+  //Pth = Module.cwrap("Pt", "number", ["number", "number", "number", "number"]);
   calcg2 = Module.cwrap("g2calc", "number", [
+    "number",
     "number",
     "number",
     "number",
@@ -61,6 +62,7 @@ var t1; // = performance.now()
 var dataLength;
 var tmult;
 var tres;
+var norm;
 
 document.getElementById('inputfile') 
 			.addEventListener('change', function() {
@@ -128,7 +130,7 @@ function runCcodeG2() {
   tres = document.getElementById("tRes").value;
   var binconversion = tmult/tres;
   //console.log(binconversion);
-  calcg2(myArray.offset,width*height,binconversion,myArrayg2.offset);
+  calcg2(myArray.offset,width*height,binconversion,myArrayg2.offset,norm);
   //document.getElementById('plotlyDiv').innerHTML="<h2>Reconstructed data</h2><span id='plotlyDivG2'></span>";
   produceOutput('plotlyDiv',599,myArrayg2,0);
 
@@ -162,8 +164,8 @@ function produceOutput(divName,sizeXY,dataCArray,log){
   }
   for (i = 0; i < nn; i++) {
     tValues[i]=(i-299)*tres/tunitmul;
-    g2Values[i] = dataCArray.data[i];
-    g2ValuesErr[i]=Math.sqrt(g2Values[i]);
+    g2Values[i] = dataCArray.data[i]/norm;
+    g2ValuesErr[i]=Math.sqrt(g2Values[i])/norm;
     if (i == nn - 1) {
       tsvG2Values = tsvG2Values + tValues[i] + "\t" + g2Values[i];
     } else {
