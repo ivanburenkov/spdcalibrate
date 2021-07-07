@@ -62,7 +62,9 @@ var t1; // = performance.now()
 var dataLength;
 var tmult;
 var tres;
-var norm;
+var norm=1.0;
+var islog=0;
+var isnorm=0;
 
 document.getElementById('inputfile') 
 			.addEventListener('change', function() {
@@ -105,7 +107,8 @@ document.getElementById('inputfile')
           //produceOutput('plotlyDiv',nn,myArray);
           hideonlyID('fitIntro');
           showonlyID('tsvdata');
-	  showonlyID('LogScale');		
+	        showonlyID('LogScale');		
+          showonlyID('NormG2');	
           //myArrayg2 = cArrayInt(599);
           //calcg2(myArray.offset,width*height,1,myArrayg2.offset);
           //produceOutput('plotlyDiv',599,myArray);
@@ -130,9 +133,9 @@ function runCcodeG2() {
   tres = document.getElementById("tRes").value;
   var binconversion = tmult/tres;
   //console.log(binconversion);
-  calcg2(myArray.offset,width*height,binconversion,myArrayg2.offset,norm);
+  norm=calcg2(myArray.offset,width*height,binconversion,myArrayg2.offset,norm);
   //document.getElementById('plotlyDiv').innerHTML="<h2>Reconstructed data</h2><span id='plotlyDivG2'></span>";
-  produceOutput('plotlyDiv',599,myArrayg2,0);
+  produceOutput('plotlyDiv',599,myArrayg2,islog,isnorm);
 
   t1 = Math.floor(performance.now() - t0);
 
@@ -140,7 +143,7 @@ function runCcodeG2() {
 }
 
 
-function produceOutput(divName,sizeXY,dataCArray,log){
+function produceOutput(divName,sizeXY,dataCArray,islog,isnorm){
   let nn=sizeXY;
   var g2Values = [];
   var tValues = [];
@@ -163,9 +166,15 @@ function produceOutput(divName,sizeXY,dataCArray,log){
     }
   }
   for (i = 0; i < nn; i++) {
-    tValues[i]=(i-299)*tres/tunitmul;
-    g2Values[i] = dataCArray.data[i]/norm;
-    g2ValuesErr[i]=Math.sqrt(g2Values[i])/norm;
+    if(isnorm==1){
+      tValues[i]=(i-299)*tres/tunitmul;
+      g2Values[i] = dataCArray.data[i]/norm;
+      g2ValuesErr[i]=Math.sqrt(g2Values[i])/norm;
+    } else {
+      tValues[i]=(i-299)*tres/tunitmul;
+      g2Values[i] = dataCArray.data[i];
+      g2ValuesErr[i]=Math.sqrt(g2Values[i]);
+    }
     if (i == nn - 1) {
       tsvG2Values = tsvG2Values + tValues[i] + "\t" + g2Values[i];
     } else {
@@ -201,22 +210,29 @@ function produceOutput(divName,sizeXY,dataCArray,log){
       }
     ]
   };
-  if(log==1){
-  var plotlyLayout = {
-    title: "Second order autocorrelation function",
-    xaxis: {title: 't, '+tunit},
-    yaxis: {title: "G<sup>(2)</sup>(t)",
-	   type: 'log',
-    	   autorange: true
-	}
-  };
+  if(islog==1){
+    var plotlyLayout = {
+      title: "Second order autocorrelation function",
+      xaxis: {title: 't, '+tunit},
+      yaxis: {title: "G<sup>(2)</sup>(t)",
+      type: 'log',
+          autorange: true
+        }
+    };
   } else {
     var plotlyLayout = {
-    title: "Second order autocorrelation function",
-    xaxis: {title: 't, '+tunit},
-    yaxis: {title: "G<sup>(2)</sup>(t)"}
+      title: "Second order autocorrelation function",
+      xaxis: {title: 't, '+tunit},
+      yaxis: {title: "G<sup>(2)</sup>(t)"}
   };  
   }
+  /* if(isnorm==1){
+    var plotlyLayout = {
+      title: "Second order autocorrelation function",
+      xaxis: {title: 't, '+tunit},
+      yaxis: {title: "g<sup>(2)</sup>(t)"}
+    };
+  } */
   Plotly.newPlot(divName, data, plotlyLayout, plotlyButtons);
 
   //#region old
