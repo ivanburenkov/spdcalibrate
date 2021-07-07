@@ -103,6 +103,7 @@ document.getElementById('inputfile')
           //produceOutput('plotlyDiv',nn,myArray);
           hideonlyID('fitIntro');
           showonlyID('tsvdata');
+	  showonlyID('LogScale');		
           //myArrayg2 = cArrayInt(599);
           //calcg2(myArray.offset,width*height,1,myArrayg2.offset);
           //produceOutput('plotlyDiv',599,myArray);
