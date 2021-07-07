@@ -129,7 +129,7 @@ function runCcodeG2() {
   //console.log(binconversion);
   calcg2(myArray.offset,width*height,binconversion,myArrayg2.offset);
   //document.getElementById('plotlyDiv').innerHTML="<h2>Reconstructed data</h2><span id='plotlyDivG2'></span>";
-  produceOutput('plotlyDiv',599,myArrayg2);
+  produceOutput('plotlyDiv',599,myArrayg2,0);
 
   t1 = Math.floor(performance.now() - t0);
 
@@ -137,7 +137,7 @@ function runCcodeG2() {
 }
 
 
-function produceOutput(divName,sizeXY,dataCArray){
+function produceOutput(divName,sizeXY,dataCArray,log){
   let nn=sizeXY;
   var g2Values = [];
   var tValues = [];
@@ -198,7 +198,7 @@ function produceOutput(divName,sizeXY,dataCArray){
       }
     ]
   };
-  
+  if(log==1){
   var plotlyLayout = {
     title: "Second order autocorrelation function",
     xaxis: {title: 't, '+tunit},
@@ -207,6 +207,13 @@ function produceOutput(divName,sizeXY,dataCArray){
     	   autorange: true
 	}
   };
+  } else {
+    var plotlyLayout = {
+    title: "Second order autocorrelation function",
+    xaxis: {title: 't, '+tunit},
+    yaxis: {title: "G<sup>(2)</sup>(t)"}
+  };  
+  }
   Plotly.newPlot(divName, data, plotlyLayout, plotlyButtons);
 
   //#region old
