@@ -60,6 +60,7 @@ var t0; // = performance.now()
 var t1; // = performance.now()
 var dataLength;
 var tmult;
+var tres;
 
 document.getElementById('inputfile') 
 			.addEventListener('change', function() {
@@ -123,7 +124,10 @@ function runCcodeG2() {
 
   myArrayg2 = cArrayInt(599);
   tmult = document.getElementById("sLoss").value;
-  calcg2(myArray.offset,width*height,tmult,myArrayg2.offset);
+  tres = document.getElementById("tRes").value;
+  var binconversion = tmult/tres;
+  //console.log(binconversion);
+  calcg2(myArray.offset,width*height,binconversion,myArrayg2.offset);
   //document.getElementById('plotlyDiv').innerHTML="<h2>Reconstructed data</h2><span id='plotlyDivG2'></span>";
   produceOutput('plotlyDiv',599,myArrayg2);
 
@@ -327,22 +331,22 @@ function produceOutput(divName,sizeXY,dataCArray){
   tsvG2Values = "";
   var tunit;
   var tunitmul;
-  if(tmult<1000){
-    tunit="s";
+  if(tres<10){
+    tunit="ns";
     tunitmul=1;
   } else {
-    if(tmult<1000000){
-      tunit="ms";
+    if(tres<10000){
+      tunit="us";
       tunitmul=1000;
     } else {
-      if(tmult<1000000000){
-        tunit="us";
+      if(tres<10000000){
+        tunit="ms";
         tunitmul=1000000;
       }
     }
   }
   for (i = 0; i < nn; i++) {
-    tValues[i]=(i-299)*tunitmul/tmult;
+    tValues[i]=(i-299)*tres/tunitmul;
     g2Values[i] = dataCArray.data[i];
     g2ValuesErr[i]=Math.sqrt(g2Values[i]);
     if (i == nn - 1) {
