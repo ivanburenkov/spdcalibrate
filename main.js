@@ -123,6 +123,10 @@ document.getElementById('inputfile')
 
 
 function runCcodeG2() {
+  document.getElementById('fileLoaded').innerHTML="Calculating ... <div class='spinner-border' role='status'>  <span class='visually-hidden'>Loading...</span></div>";
+  setTimeout(function(){runCcodeG2true();},100);
+}
+function runCcodeG2true() {
   t0 = performance.now();
 
   myArrayg2 = cArrayInt(599);
