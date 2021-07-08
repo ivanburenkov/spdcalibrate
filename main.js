@@ -66,6 +66,7 @@ var norm=1.0;
 var islog=0;
 var isnorm=0;
 var myArray;
+var c;
 
 document.getElementById('inputfile') 
 			.addEventListener('change', function() {
@@ -90,7 +91,7 @@ document.getElementById('inputfile')
 				a.pop();
 				var x = Math.floor(400/width);
 				var y = Math.floor(400/height);
-				var c = a.flat();
+				c = a.flat();
 				myArray = cArray(width*height);
 				if(!c.some(isNaN)){
 				  for(const i in c){
