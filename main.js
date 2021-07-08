@@ -65,6 +65,7 @@ var tres;
 var norm=1.0;
 var islog=0;
 var isnorm=0;
+var myArray;
 
 document.getElementById('inputfile') 
 			.addEventListener('change', function() {
