@@ -105,6 +105,13 @@ document.getElementById('inputfile')
           ////////////////////////////////////
           //document.getElementById('plotlyDivLabel').innerHTML="<h2>Loaded data</h2><span id='plotlyDiv'></span>";
           //produceOutput('plotlyDiv',nn,myArray);
+	fr.onprogress = function(data) {
+		if (data.lengthComputable) {                                            
+		  var valeur= Math.round((data.loaded * 100) / data.total);
+		  $('.progress-bar').css('width', valeur+'%').attr('aria-valuenow', valeur);
+		    //console.log(progress);
+		}
+	      }					
           document.getElementById('fileLoaded').innerHTML="Now, please, set desired parameters and hit 'Calculate!' button.";	
           //myArrayg2 = cArrayInt(599);
           //calcg2(myArray.offset,width*height,1,myArrayg2.offset);
