@@ -105,10 +105,7 @@ document.getElementById('inputfile')
           ////////////////////////////////////
           //document.getElementById('plotlyDivLabel').innerHTML="<h2>Loaded data</h2><span id='plotlyDiv'></span>";
           //produceOutput('plotlyDiv',nn,myArray);
-          hideonlyID('fitIntro');
-          showonlyID('tsvdata');
-	        showonlyID('LogScale');		
-          showonlyID('NormG2');	
+          document.getElementById('fileLoaded').innerHTML="Now, please, set desired parameters and hit 'Calculate!' button.";	
           //myArrayg2 = cArrayInt(599);
           //calcg2(myArray.offset,width*height,1,myArrayg2.offset);
           //produceOutput('plotlyDiv',599,myArray);
@@ -138,7 +135,10 @@ function runCcodeG2() {
   produceOutput('plotlyDiv',599,myArrayg2,islog,isnorm);
 
   t1 = Math.floor(performance.now() - t0);
-
+  hideonlyID('fitIntro');
+  showonlyID('tsvdata');
+  showonlyID('LogScale');		
+  showonlyID('NormG2');
   document.getElementById("timing").innerHTML = "Done in " + t1 + " ms";
 }
 
