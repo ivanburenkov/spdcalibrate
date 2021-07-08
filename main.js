@@ -141,7 +141,9 @@ function runCcodeG2true() {
   tres = document.getElementById("tRes").value;
   var binconversion = tmult/tres;
   //console.log(binconversion);
+  console.log(myArray.offset,width*height,binconversion,myArrayg2.offset,norm);
   norm=calcg2(myArray.offset,width*height,binconversion,myArrayg2.offset,norm);
+  console.log(myArray.offset,width*height,binconversion,myArrayg2.offset,norm);
   //document.getElementById('plotlyDiv').innerHTML="<h2>Reconstructed data</h2><span id='plotlyDivG2'></span>";
   produceOutput('plotlyDiv',599,myArrayg2,islog,isnorm);
 
