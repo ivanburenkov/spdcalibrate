@@ -169,7 +169,7 @@ function produceOutput(divName,sizeXY,dataCArray,islog,isnorm){
     if(isnorm==1){
       tValues[i]=(i-299)*tres/tunitmul;
       g2Values[i] = dataCArray.data[i]/norm;
-      g2ValuesErr[i]=Math.sqrt(g2Values[i])/norm;
+      g2ValuesErr[i]=Math.sqrt(g2Values[i]/norm);
     } else {
       tValues[i]=(i-299)*tres/tunitmul;
       g2Values[i] = dataCArray.data[i];
