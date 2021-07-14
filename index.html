@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=1024">
     <!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
-    <!-- <meta name="description" content="">
+    <meta name="description" content="Fast web tool to characterize single-photon detectors. This tool analyzing second-order correlations among time-tagged detection events. Afterpulse probability, dead time, and reset can be extracted from a single data set.">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Hugo 0.83.1"> -->
-    <title>g2 calculator</title>
+    <title>Detector calibration</title>
 
     <style>html {
       /* default font-size is 16px - this is set in the default browser stylesheet */ 
@@ -48,7 +48,7 @@
   <header class="navbar navbar-expand-md navbar-dark fixed-top bg-dark shadow" style="padding-top:0; padding-bottom:0;">
   <a class="navbar-brand col-md-4 col-lg-2 me-0 px-3" href="#">
     <img src="bootstrapjs/favicon.ico" width="15%" height="15%" style="margin-right:5%; margin-left:-5%; margin-top:-12%;margin-bottom:-10%;">
-    G<sup>(2)</sup> calculator</a>
+    SPD calibration</a>
   <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" 
   data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>    
@@ -62,7 +62,8 @@
         <span class="fa-menu" data-feather="menu">
       </a>
       <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-        <li><a class="dropdown-item active" href="https://ivanburenkov.github.io/g2" title="g2 calculator">G<sup>(2)</sup> calculator</a></li>
+        <li><a class="dropdown-item active" href="https://ivanburenkov.github.io/spdcalibrate" title="detector calibration">SPD calibration</a></li>
+        <li><a class="dropdown-item" href="https://ivanburenkov.github.io/g2" title="g2 calculator">G<sup>(2)</sup> calculator</a></li>
         <li><a class="dropdown-item" href="https://ivanburenkov.github.io/genjpd">JPD generator</a></li>
         <li><a class="dropdown-item" href="https://ivanburenkov.github.io/genrpd">PND generator</a></li>
         <li><a class="dropdown-item" href="https://ivanburenkov.github.io/fitjpd">JPD reconstruction</a></li>
@@ -72,15 +73,18 @@
 
   <div class="collapse multi-collapse" id="help">
     <div class="card card-body">
-      <img src="img/g2fig.png" width="400px"></img>
-      This software can calculate second-order autocorrelation function G^(2)(t) using a time interval series. Input file shoud contain tab or line separated values of time delays between consecutive photon detections in text format. Work on other data formats (e.g. produced by commercial software .ht3, .ptu) is in progress. This web tool is using parts of C++ code written by S.V. Polyakov.
+        <img src="img/g2fig.png" width="600px"></img>
+        <div class="container-fluid">
+        This tool is similar to the <a class="link-secondary" href="https://ivanburenkov.github.io/g2">G<sup>(2)</sup> calculator</a>. It also calculates the second-order correlation function G^(2)(t) for both start-multistop and set of start-single stop coincidences. Input file should be a time interval series with tab or line separated values of time delays between consecutive photon detections in text format. Attenuated laser should be used to collect detector data, because it should result in unit second order correlation function for an ideal detector. For more details see Refs.
+      </div>
       <a id="killButton" class="btn btn-close" href="#help" data-toggle="collapse"></a>
     </div>
   </div>
   <div class="collapse multi-collapse" id="refs">
     <div class="card card-body">
       <div class="container-fluid">
-        TBD
+        This tool allows single photon detecor self calibration as discribed in the <a class="link-secondary" href="https://www.osapublishing.org/oe/fulltext.cfm?uri=oe-25-17-20352" target="_blank">Optics Express</a> paper.
+        This web tool is using parts of C++ code written by S.V. Polyakov.
         <!-- For details see our paper in <a class="link-secondary" href="https://journals.aps.org/pra/abstract/10.1103/PhysRevA.95.053806" target="_blank">PRA</a> or
         <a class="link-secondary" href="https://arxiv.org/pdf/1704.05503" target="_blank">arXiv</a>.
         For numerical algorithm details: <a class="link-secondary" href="https://doi.org/10.6028/jres.122.030" target="_blank">DOI</a>
@@ -168,6 +172,7 @@
               <label for="inputfile" type="button" 
               class="btn btn-secondary" style="margin-left: 5px;">Load data file</label>
           </span>
+          <span id="g2controls" style="display:none">
           <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span>
               Please enter desired time resolution in nanoseconds.
@@ -225,6 +230,7 @@
               >Calculate!
             </button>
           </li>
+        </span>
         </ul>
       </div>
     </nav>
@@ -232,7 +238,7 @@
     <main class="col-md-8 ms-sm-auto col-lg-10 px-md-4" style="margin-top:48px;">
       <div class="p-5 mb-4 bg-light rounded-3" id="fitIntro">
         <div class="container-fluid py-5">
-          <h1 class="display-5 fw-bold" style="font-size:2rem;">Second-order autocorrelation function G<sup>(2)</sup>(t)</h1>
+          <h1 class="display-5 fw-bold" style="font-size:2rem;">Fast web tool to characterize single-photon detectors.</h1>
           <p class="col-md-8 fs-4" id="fileLoaded">
             Please use sidebar to choose file in .tsv/.dat format with photon detection time delays.
           </p>
@@ -244,33 +250,35 @@
 <button type="button" 
               id="LogScale"
               class="btn btn-secondary showHelp" 
-              onclick="islog=1;produceOutput('plotlyDiv',599,myArrayg2,islog,isnorm);showonlyID('LinScale');hideonlyID('LogScale');return false;"
+              onclick="islog=1;plotAll();showonlyID('LinScale');hideonlyID('LogScale');return false;"
               style="margin-left: 5px; display:none;"
               >Log Scale
             </button> 
 <button type="button" 
               id="LinScale"
               class="btn btn-secondary showHelp" 
-              onclick="islog=0;produceOutput('plotlyDiv',599,myArrayg2,islog,isnorm);showonlyID('LogScale');hideonlyID('LinScale');return false;"
+              onclick="islog=0;plotAll();showonlyID('LogScale');hideonlyID('LinScale');return false;"
               style="margin-left: 5px; display:none;"
               >Linear Scale
             </button> 
 <button type="button" 
               id="NormG2"
               class="btn btn-secondary showHelp" 
-              onclick="isnorm=1;produceOutput('plotlyDiv',599,myArrayg2,islog,isnorm);showonlyID('RawG2');hideonlyID('NormG2');return false;"
+              onclick="isnorm=1;plotAll();showonlyID('RawG2');hideonlyID('NormG2');return false;"
               style="margin-left: 5px; display:none;"
               >Normalize
             </button> 
 <button type="button" 
               id="RawG2"
               class="btn btn-secondary showHelp" 
-              onclick="isnorm=0;produceOutput('plotlyDiv',599,myArrayg2,islog,isnorm);showonlyID('NormG2');hideonlyID('RawG2');return false;"
+              onclick="isnorm=0;plotAll();showonlyID('NormG2');hideonlyID('RawG2');return false;"
               style="margin-left: 5px; display:none;"
               >Show coincidences
             </button> 
 <br>
 <div id='plotlyDiv'><!-- Plotly chart will be drawn inside this DIV --></div>
+<div id='plotlyDivClics'><!-- Plotly chart will be drawn inside this DIV --></div>
+<div id='plotlyDivAfterpulse'><!-- Plotly chart will be drawn inside this DIV --></div>
 
 <!-- <div class="container">
   <div class="row">
@@ -281,7 +289,7 @@
   </div>
 </div> -->
 
-<script type="text/javascript" src="g2calc.js"> </script>
+<script type="text/javascript" src="spdcalibrate.js"> </script>
 
 <script type="text/javascript" src="main.js"> </script>
 <script type="text/javascript" src="sidebar.js"> </script>
@@ -289,6 +297,10 @@
 <div class="form-group purple-border" style="display: none;" id="tsvdata">
   <label for="exampleFormControlTextarea5">
     <button type="button" class="btn btn-secondary" onclick="CopyG2ToClipboard()">Copy G<sup>(2)</sup> data
+    </button>
+    <button type="button" class="btn btn-secondary" onclick="CopyClicksToClipboard()">Copy start-single stop data
+    </button>
+    <button type="button" class="btn btn-secondary" onclick="CopyAfterpulseToClipboard()">Copy afterpulse data
     </button>
   </label>
   <textarea class="form-control" id="datatsv" rows="3" readonly >

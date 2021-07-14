@@ -492,14 +492,14 @@ function CopyG2ToClipboard() {
   document.execCommand("copy");
 }
 
-function CopyRPDToClipboard() {
-  document.getElementById("datatsv").value = tsvRPDValues;
+function CopyClicksToClipboard() {
+  document.getElementById("datatsv").value = tsvClickValues;
   document.getElementById("datatsv").select();
   document.execCommand("copy");
 }
 
-function CopyFitToClipboard() {
-  document.getElementById("datatsv").value = tsvFitValues;
+function CopyAfterpulseToClipboard() {
+  document.getElementById("datatsv").value = tsvAfterpulseValues;
   document.getElementById("datatsv").select();
   document.execCommand("copy");
 }

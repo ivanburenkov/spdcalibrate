@@ -18,7 +18,8 @@
 
 function init() {
   //Pth = Module.cwrap("Pt", "number", ["number", "number", "number", "number"]);
-  calcg2 = Module.cwrap("g2calc", "number", [
+  calibratespd = Module.cwrap("spdcalibrate", "number", [
+    "number",
     "number",
     "number",
     "number",
@@ -57,6 +58,8 @@ Module["onRuntimeInitialized"] = function () {
  */
 //Global vars
 var tsvG2Values = "";
+var tsvClickValues = "";
+var tsvAfterpulseValues = "";
 var t0; // = performance.now()
 var t1; // = performance.now()
 var dataLength;
@@ -67,6 +70,7 @@ var islog=0;
 var isnorm=0;
 var myArray;
 var c;
+var histlength=400;
 
 document.getElementById('inputfile') 
 			.addEventListener('change', function() {
@@ -128,6 +132,8 @@ document.getElementById('inputfile')
 	      }					
           document.getElementById('fileLoaded').innerHTML="Now, please, set desired parameters and hit 'Calculate!' button.";
 			fr.readAsText(this.files[0]); 
+  showonlyID('g2controls');
+
 		}) 
 
 
@@ -138,18 +144,20 @@ function runCcodeG2() {
 function runCcodeG2true() {
   t0 = performance.now();
 
-  myArrayg2 = cArrayInt(599);
+  myArrayg2 = cArrayInt(histlength);
+  myArrayClics = cArrayInt(5*histlength);
   tmult = document.getElementById("sLoss").value;
   tres = document.getElementById("tRes").value;
   var binconversion = tmult/tres;
   //console.log(binconversion);
-  console.log(HEAPF64[(myArray.offset)/8],HEAPF64[(myArray.offset)/8+width*height-1],HEAP32[(myArrayg2.offset)/4],HEAP32[(myArrayg2.offset)/4+598]);
-  console.log(myArray,width*height,binconversion,myArrayg2,norm);
-  norm=calcg2(myArray.offset,width*height,binconversion,myArrayg2.offset,norm);
-  console.log(myArray,width*height,binconversion,myArrayg2,norm);
-  console.log(HEAPF64[(myArray.offset)/8],HEAPF64[(myArray.offset)/8+width*height-1],HEAP32[(myArrayg2.offset)/4],HEAP32[(myArrayg2.offset)/4+598]);
+  //console.log(HEAPF64[(myArray.offset)/8],HEAPF64[(myArray.offset)/8+width*height-1],HEAP32[(myArrayg2.offset)/4],HEAP32[(myArrayg2.offset)/4+598]);
+  //console.log(myArray,width*height,binconversion,myArrayg2,norm);
+  norm=calibratespd(myArray.offset,width*height,binconversion,myArrayg2.offset,myArrayClics.offset,norm);
+  //console.log(myArray,width*height,binconversion,myArrayg2,norm);
+  //console.log(HEAPF64[(myArray.offset)/8],HEAPF64[(myArray.offset)/8+width*height-1],HEAP32[(myArrayg2.offset)/4],HEAP32[(myArrayg2.offset)/4+598]);
   //document.getElementById('plotlyDiv').innerHTML="<h2>Reconstructed data</h2><span id='plotlyDivG2'></span>";
-  produceOutput('plotlyDiv',599,myArrayg2,islog,isnorm);
+  
+  plotAll();
 
   t1 = Math.floor(performance.now() - t0);
   hideonlyID('fitIntro');
@@ -157,15 +165,27 @@ function runCcodeG2true() {
   showonlyID('LogScale');		
   showonlyID('NormG2');
   document.getElementById("timing").innerHTML = "Done in " + t1 + " ms";
+  //cFree(myArrayg2);
+  //cFree(myArrayClics);
 }
 
+function plotAll(){
+  var title="Second-order autocorrelation function (start-multistop)";
+  produceOutput('plotlyDiv',histlength,myArrayg2.data,islog,isnorm,title,0);
+  title="Second-order autocorrelation function (start-single stop)";
+  produceOutputClicks('plotlyDivClics',histlength,myArrayClics.data,islog,0,title);
+  var afterpulse=[];
+  for(i=0;i<histlength;i++)myArrayg2.data[i]-norm>0 ? afterpulse[i]=myArrayg2.data[i]-norm : afterpulse[i]=0;
+  title="Afterpulsing profile of the detector";
+  produceOutput('plotlyDivAfterpulse',histlength,afterpulse,islog,0,title,1);
+}
 
-function produceOutput(divName,sizeXY,dataCArray,islog,isnorm){
+function produceOutput(divName,sizeXY,dataCArray,islog,isnorm,title,tsvdata){
   let nn=sizeXY;
   var g2Values = [];
   var tValues = [];
   var g2ValuesErr = [];
-  tsvG2Values = "";
+  var tsv = "";
   var tunit;
   var tunitmul;
   if(tres<10){
@@ -184,32 +204,33 @@ function produceOutput(divName,sizeXY,dataCArray,islog,isnorm){
   }
   for (i = 0; i < nn; i++) {
     if(isnorm==1){
-      tValues[i]=(i-299)*tres/tunitmul;
-      g2Values[i] = dataCArray.data[i]/norm;
-      g2ValuesErr[i]=Math.sqrt(g2Values[i]/norm);
+      tValues[i]=i*tres/tunitmul;
+      g2Values[i] = dataCArray[i]/norm;
+      //g2ValuesErr[i]=Math.sqrt(g2Values[i]/norm);
     } else {
-      tValues[i]=(i-299)*tres/tunitmul;
-      g2Values[i] = dataCArray.data[i];
-      g2ValuesErr[i]=Math.sqrt(g2Values[i]);
+      tValues[i]=i*tres/tunitmul;
+      g2Values[i] = dataCArray[i];
+      //g2ValuesErr[i]=Math.sqrt(g2Values[i]);
     }
     if (i == nn - 1) {
-      tsvG2Values = tsvG2Values + tValues[i] + "\t" + g2Values[i];
+      tsv = tsv + tValues[i] + "\t" + g2Values[i];
     } else {
-      tsvG2Values = tsvG2Values + tValues[i] + "\t" + g2Values[i] + "\n";
+      tsv = tsv + tValues[i] + "\t" + g2Values[i] + "\n";
     }
   }
-
+  if(tsvdata==0)tsvG2Values=tsv;
+  if(tsvdata==1)tsvAfterpulseValues=tsv;
   document.getElementById("datatsv").value = tsvG2Values;
   
   var data = [
     {
       x: tValues,
       y: g2Values,
-      error_y: {
+      /* error_y: {
         type: 'data',
         array: g2ValuesErr,
         visible: true
-      },
+      }, */
       xaxis: "Delay",
       yaxis: "<var>G</var><sup>(2)<sup>(<var>t</var>)",
       type: 'scatter'
@@ -229,7 +250,7 @@ function produceOutput(divName,sizeXY,dataCArray,islog,isnorm){
   };
   if(islog==1){
     var plotlyLayout = {
-      title: "Second order autocorrelation function",
+      title: title,
       xaxis: {title: 't, '+tunit},
       yaxis: {title: "G<sup>(2)</sup>(t)",
       type: 'log',
@@ -238,7 +259,7 @@ function produceOutput(divName,sizeXY,dataCArray,islog,isnorm){
     };
   } else {
     var plotlyLayout = {
-      title: "Second order autocorrelation function",
+      title: title,
       xaxis: {title: 't, '+tunit},
       yaxis: {title: "G<sup>(2)</sup>(t)"}
   };  
@@ -251,126 +272,74 @@ function produceOutput(divName,sizeXY,dataCArray,islog,isnorm){
     };
   } */
   Plotly.newPlot(divName, data, plotlyLayout, plotlyButtons);
+}
 
-  //#region old
-  /* 
-  var zValues = [];
-  var xValues = [];
-  var yValues = [];
-  tsvJPDValues = "";
-  tsvRPDValues = "";
-  for (i = 0; i < width; i++) {
-    zValues[i] = [];
-    xValues[i] = i;
-    yValues[i] = i;
-    for (j = 0; j < height; j++) {
-      zValues[i][j] = dataCArray.data[i * width + j];
-      if (j == height - 1) {
-        tsvJPDValues = tsvJPDValues + zValues[i][j];
-      } else {
-        tsvJPDValues = tsvJPDValues + zValues[i][j] + "\t";
+function produceOutputClicks(divName,sizeXY,dataCArray,islog,isnorm,title){
+  let nn=sizeXY;
+  var g2Values = [];
+  var tValues = [];
+  //var g2ValuesErr = [];
+  //tsvG2Values = "";
+  var tsv="";
+  var tunit;
+  var tunitmul;
+  if(tres<10){
+    tunit="ns";
+    tunitmul=1;
+  } else {
+    if(tres<10000){
+      tunit="us";
+      tunitmul=1000;
+    } else {
+      if(tres<10000000){
+        tunit="ms";
+        tunitmul=1000000;
       }
     }
-    if (i != width - 1) {
-      tsvJPDValues = tsvJPDValues + "\n";
+  }
+  for(j=0;j<5;j++){
+    g2Values[j]=[];
+    for (i = 0; i < nn; i++) {
+      if(isnorm==1){
+        tValues[i]=i*tres/tunitmul;
+        g2Values[j][i] = dataCArray[j*histlength+i]/norm;
+        //g2ValuesErr[i]=Math.sqrt(g2Values[i]/norm);
+      } else {
+        tValues[i]=i*tres/tunitmul;
+        g2Values[j][i] = dataCArray[j*histlength+i];
+        //g2ValuesErr[i]=Math.sqrt(g2Values[i]);
+      }
     }
   }
 
-  document.getElementById("datatsv").value = tsvJPDValues;
+  for (i = 0; i < nn; i++) {
+    tsv = tsv + tValues[i];
+    for(j=0;j<5;j++)tsv = tsv + "\t" + g2Values[j][i];
+    if (i != nn - 1) {
+      tsv = tsv + "\n";
+    } 
+  }
+  tsvClickValues=tsv;
+  //document.getElementById("datatsv").value = tsvG2Values;
   
-
-
-  var jpdData = {
-    z: zValues,
-    x: xValues,
-    y: yValues,
-    name: "Joint PND",
-    colorscale: "Blackbody", //'Electric',
-    type: "heatmap",
-    colorbar: { len: 0.5 }
-  };
-  rpd = cArray(2 * nn);
-
-  jpdrpd(dataCArray.offset, rpd.offset, nn);
-  var iValues = [];
-  var sValues = [];
-  for (i = 0; i < width; i++) {
-    iValues[i] = rpd.data[i];
-    sValues[i] = rpd.data[i + width];
-    if (j == width - 1) {
-      tsvRPDValues = tsvRPDValues + i + "\t" + sValues[i] + "\t" + iValues[i];
-    } else {
-      tsvRPDValues =
-        tsvRPDValues + i + "\t" + sValues[i] + "\t" + iValues[i] + "\n";
-    }
+  var data = [];
+  for(j=0;j<5;j++){
+    i=j+1;
+    data[j]=
+    {
+      x: tValues,
+      y: g2Values[j],
+      /* error_y: {
+        type: 'data',
+        array: g2ValuesErr,
+        visible: true
+      }, */
+      name: "Detection number "+i,
+      xaxis: "Delay",
+      yaxis: "<var>G</var><sup>(2)<sup>(<var>t</var>)",
+      type: 'scatter'
+    };
   }
-  var RPDiData = {
-    y: xValues,
-    x: iValues,
-    orientation: "h",
-    name: "Idler arm PND",
-    marker: { color: "rgb(102,0,0)" },
-    xaxis: "x2",
-    type: "bar"
-  };
-  var RPDsData = {
-    x: xValues,
-    y: sValues,
-    name: "Signal arm PND",
-    marker: { color: "rgb(0,0,102)" },
-    yaxis: "y2",
-    type: "bar"
-  };
-  var bb = document.getElementById("sidebarMenu").getBoundingClientRect();
-  let sidebarwidth = bb.right - bb.left;
-  function getViewport() {
-    return Math.floor(
-      Math.min(window.innerHeight, window.innerWidth - sidebarwidth)
-    );
-  }
-  let screenwidth = Math.floor(getViewport()/1.4);
-
-  var plotlyLayout = {
-    title: "Photon Number Distributions (PNDs)",
-    showlegend: false,
-    autosize: false,
-    width: screenwidth, //-sidebarwidth-100,//Math.floor(screenwidth*0.6),
-    height: screenwidth, //-sidebarwidth-150,//Math.floor(screenwidth*0.6)-50,
-    margin: { t: 100 },
-    hovermode: "closest",
-    bargap: 0.1,
-    xaxis: {
-      domain: [0, 0.84],
-      showgrid: false,
-      showline: true,
-      title: "Signal number of photons",
-      zeroline: false
-    },
-    yaxis: {
-      domain: [0, 0.84],
-      showgrid: false,
-      showline: true,
-      title: "Idler number of photons",
-      zeroline: false
-    },
-    xaxis2: {
-      domain: [0.86, 1],
-      showgrid: true //,
-      //zeroline: false
-    },
-    yaxis2: {
-      domain: [0.86, 1],
-      showgrid: true //,
-      //zeroline: false
-    },
-    font: {
-      family: "Arial",
-      size: Math.floor(screenwidth / 40), //((screenwidth-sidebarwidth-100)/50),
-      color: "#000"
-    }
-  };
-
-  var plotlyData = [jpdData, RPDsData, RPDiData];
   var plotlyButtons = {
     modeBarButtonsToRemove: ["toImage", "sendDataToCloud"],
     modeBarButtonsToAdd: [
@@ -383,8 +352,28 @@ function produceOutput(divName,sizeXY,dataCArray,islog,isnorm){
       }
     ]
   };
-  
-  Plotly.newPlot(divName, plotlyData, plotlyLayout, plotlyButtons);
- */
-//#endregion
+  if(islog==1){
+    var plotlyLayout = {
+      title: title,
+      xaxis: {title: 't, '+tunit},
+      yaxis: {title: "G<sup>(2)</sup>(t)",
+      type: 'log',
+          autorange: true
+        }
+    };
+  } else {
+    var plotlyLayout = {
+      title: title,
+      xaxis: {title: 't, '+tunit},
+      yaxis: {title: "G<sup>(2)</sup>(t)"}
+  };  
+  }
+  /* if(isnorm==1){
+    var plotlyLayout = {
+      title: "Second order autocorrelation function",
+      xaxis: {title: 't, '+tunit},
+      yaxis: {title: "g<sup>(2)</sup>(t)"}
+    };
+  } */
+  Plotly.newPlot(divName, data, plotlyLayout, plotlyButtons);
 }
