@@ -71,6 +71,7 @@ var isnorm=0;
 var myArray;
 var c;
 var histlength=400;
+var firstRun=1;
 
 document.getElementById('inputfile') 
 			.addEventListener('change', function() {
@@ -160,10 +161,13 @@ function runCcodeG2true() {
   plotAll();
 
   t1 = Math.floor(performance.now() - t0);
+if(firstRun==1){
   hideonlyID('fitIntro');
   showonlyID('tsvdata');
   showonlyID('LogScale');		
   showonlyID('NormG2');
+  firstRun=0;	
+}
   document.getElementById("timing").innerHTML = "Done in " + t1 + " ms";
   //cFree(myArrayg2);
   //cFree(myArrayClics);
